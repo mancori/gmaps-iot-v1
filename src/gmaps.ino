@@ -1,53 +1,65 @@
-#include "google-maps-device-locator.h"
+#include <google-maps-device-locator.h>
 #include "SeeedOLED.h"
 
- 
-
-// Uncomment to show debugging logs
-//SerialLogHandler logHandler(LOG_LEVEL_TRACE);
 GoogleMapsDeviceLocator locator;
 int hour=0;
 int minutes=0;
-int lastMinute=-1;
-
-// SYSTEM_THREAD(ENABLED);
-
-void locationCallback(float lat, float lon, float accuracy);
+int lastMinute=0;
 
 void setup() {
- 	  Serial.begin(9600);
+    Serial.begin(9600);
 	  Wire.begin();
     SeeedOled.init();  	
  	  SeeedOled.clearDisplay();
     SeeedOled.setNormalDisplay();
     SeeedOled.setPageMode(); 
     SeeedOled.setTextXY(2, 0);
-    SeeedOled.putString("GPS v5.1");
+    SeeedOled.putString("GPS v1.3");
     locator.withEventName("deviceLocator");
-    locator.withSubscribe(locationCallback).withLocatePeriodic(120);
+    locator.withSubscribe(locationCallback).withLocatePeriodic(30);
     Time.zone(+7);
+    lastMinute = Time.minute();
 }
 
 void updateTime()
-{
-Time.now();    
+{ 
 hour = Time.hourFormat12();
 minutes = Time.minute();
-SeeedOled.setNormalDisplay();
-SeeedOled.setPageMode();
-SeeedOled.setTextXY(4,5);
-SeeedOled.putNumber(hour);
-SeeedOled.putString(":");
-SeeedOled.putNumber(minutes);
+if (lastMinute +1 == minutes ){
+ 	  SeeedOled.clearDisplay();
+    SeeedOled.setNormalDisplay();
+    SeeedOled.setPageMode();
+    SeeedOled.setTextXY(4,5);
+    SeeedOled.putNumber(hour);
+    SeeedOled.putString(":");
+    if(minutes<10 ){
+       SeeedOled.putNumber(0); 
+       SeeedOled.putNumber(minutes); 
+    }
+    SeeedOled.putNumber(minutes); 
+    lastMinute = minutes;
 }
-
-void customPubish(){
-  Particle.publish("location",Time.minute );
-}
-void loop() {
-	  locator.loop();
-    updateTime();
+    SeeedOled.setNormalDisplay();
+    SeeedOled.setPageMode();
+    SeeedOled.setTextXY(4,5);
+    SeeedOled.putNumber(hour);
+    SeeedOled.putString(":");
+    if(minutes<10 ){
+       SeeedOled.putNumber(0); 
+       SeeedOled.putNumber(minutes); 
+    }
+    SeeedOled.putNumber(minutes); 
 }
 
 void locationCallback(float lat, float lon, float accuracy) {
+  // Handle the returned location data for the device. This method is passed three arguments:
+  // - Latitude
+  // - Longitude
+  // - Accuracy of estimated location (in meters)
 }
+
+void loop() {
+  locator.loop();
+  updateTime();
+}
+            
